@@ -1,0 +1,31 @@
+.env
+.env/
+# Ignore environment variable files
+
+# Ignore node_modules directory
+node_modules/
+# Ignore build output directories
+dist/
+build/
+# Ignore log files
+logs/
+# Ignore temporary files
+tmp/
+# Ignore coverage reports
+coverage/
+# Ignore IDE specific files
+.vscode/
+.idea/
+# Ignore OS generated files
+.DS_Store
+# Ignore specific file typesgit push --set-upstream origin develop
+*.log
+*.tmp
+*.env
+
+# Ignore specific directories for specific tools
+.sass-cache/
+# Ignore specific files for specific tools
+.sass-cache
+# Ignore specific directories for specific tools
+coverage-final.json
