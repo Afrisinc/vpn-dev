@@ -23,3 +23,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *model.User) error {
 	_, err := s.repo.Create(ctx, user)
 	return err
 }
+
+func (s *UserService) GetUserByPublicKey(ctx context.Context, publicKey string) (*model.User, error) {
+	return s.repo.FindByPublicKey(ctx, publicKey)
+}

@@ -35,3 +35,13 @@ func (r *UserRepository) GetAll(ctx context.Context) ([]model.User, error) {
 func (r *UserRepository) Create(ctx context.Context, user *model.User) (*mongo.InsertOneResult, error) {
 	return r.collection.InsertOne(ctx, user)
 }
+
+func (r *UserRepository) FindByPublicKey(ctx context.Context, publicKey string) (*model.User, error) {
+	var user model.User
+	filter := bson.M{"wireguard.publickey": publicKey}
+	err := r.collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

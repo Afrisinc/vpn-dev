@@ -19,8 +19,11 @@ func Start() {
 	// Initialize your service with the repository
 	userService := service.NewUserService(userRepo)
 
+	// Create WireGuard configuration
+	wgCfg := config.NewWireGuardConfig()
+
 	// Initialize your handler with the service
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService, wgCfg)
 
 	r := SetupRouter(userHandler)
 

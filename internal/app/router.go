@@ -16,8 +16,11 @@ func SetupRouter(h *handler.UserHandler) http.Handler {
 
 	// Grouped under /users
 	r.Route("/users", func(r chi.Router) {
+		r.Post("/register", h.CreateUser)
+		r.Post("/toggle", h.ToggleUserHandler)
 		r.Get("/", h.GetUsers)
-		r.Post("/", h.CreateUser)
+		r.Get("/by-public-key", h.GetUserByPublicKey) //GET /users/by-public-key?publicKey=YOUR_PUBLIC_KEY
+
 	})
 
 	// Later, you can do:
