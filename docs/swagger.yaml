@@ -1,0 +1,578 @@
+basePath: /
+definitions:
+  dto.CreateServerRequest:
+    properties:
+      agentApiKey:
+        example: secret-key-nyc
+        type: string
+      agentUrl:
+        example: https://wg-agent-nyc.example.com
+        type: string
+      bandwidthLimitMbps:
+        example: 1000
+        type: integer
+      countryCode:
+        example: US
+        type: string
+      id:
+        example: us-newyork
+        type: string
+      latitude:
+        example: 40.7128
+        type: number
+      location:
+        example: New York, USA
+        type: string
+      longitude:
+        example: -74.006
+        type: number
+      maxClients:
+        example: 250
+        minimum: 1
+        type: integer
+      name:
+        example: New York
+        type: string
+      networkCidr:
+        example: 192.168.88.0/24
+        type: string
+      publicIp:
+        example: 192.0.2.1
+        type: string
+      regionCode:
+        example: us-east
+        type: string
+      serverPublicKey:
+        example: ABC123...
+        type: string
+      wireguardPort:
+        example: 51820
+        maximum: 65535
+        minimum: 1
+        type: integer
+    required:
+    - agentApiKey
+    - agentUrl
+    - countryCode
+    - id
+    - location
+    - maxClients
+    - name
+    - networkCidr
+    - publicIp
+    - regionCode
+    - serverPublicKey
+    - wireguardPort
+    type: object
+  dto.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      ip:
+        example: 10.0.0.2
+        type: string
+    required:
+    - email
+    - ip
+    type: object
+  dto.RegisterResponse:
+    properties:
+      createdAt:
+        example: "2025-02-07T08:30:00Z"
+        type: string
+      email:
+        example: user@example.com
+        type: string
+      ip:
+        example: 10.0.0.2
+        type: string
+      publicKey:
+        example: QGF4I+0L7klYTozF8pFDZUKC4fGt3tEuCakfWYghN0Y=
+        type: string
+      userId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      wireGuardConfig:
+        type: string
+    type: object
+  dto.ServerResponse:
+    properties:
+      agentUrl:
+        example: https://wg-agent-nyc.example.com
+        type: string
+      bandwidthLimitMbps:
+        example: 1000
+        type: integer
+      countryCode:
+        example: US
+        type: string
+      createdAt:
+        example: "2025-02-07T10:30:00Z"
+        type: string
+      currentClients:
+        example: 42
+        type: integer
+      healthStatus:
+        example: healthy
+        type: string
+      id:
+        example: us-newyork
+        type: string
+      latitude:
+        example: 40.7128
+        type: number
+      location:
+        example: New York, USA
+        type: string
+      longitude:
+        example: -74.006
+        type: number
+      maxClients:
+        example: 250
+        type: integer
+      name:
+        example: New York
+        type: string
+      networkCidr:
+        example: 192.168.88.0/24
+        type: string
+      publicIp:
+        example: 192.0.2.1
+        type: string
+      regionCode:
+        example: us-east
+        type: string
+      serverPublicKey:
+        example: ABC123...
+        type: string
+      status:
+        example: active
+        type: string
+      updatedAt:
+        example: "2025-02-07T10:35:00Z"
+        type: string
+      wireguardPort:
+        example: 51820
+        type: integer
+    type: object
+  dto.ToggleRequest:
+    properties:
+      action:
+        enum:
+        - connect
+        - disconnect
+        example: connect
+        type: string
+      publicKey:
+        example: QGF4I+0L7klYTozF8pFDZUKC4fGt3tEuCakfWYghN0Y=
+        type: string
+    required:
+    - action
+    - publicKey
+    type: object
+  dto.ToggleResponse:
+    properties:
+      action:
+        example: connect
+        type: string
+      lastConnected:
+        example: "2025-02-07T08:35:00Z"
+        type: string
+      publicKey:
+        example: QGF4I+0L7klYTozF8pFDZUKC4fGt3tEuCakfWYghN0Y=
+        type: string
+      status:
+        example: active
+        type: string
+      updatedAt:
+        example: "2025-02-07T08:35:00Z"
+        type: string
+      userId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    type: object
+  dto.UpdateServerStatusRequest:
+    properties:
+      healthStatus:
+        enum:
+        - healthy
+        - degraded
+        - down
+        - unknown
+        example: healthy
+        type: string
+      status:
+        enum:
+        - active
+        - maintenance
+        - offline
+        - full
+        example: active
+        type: string
+    required:
+    - healthStatus
+    - status
+    type: object
+  model.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      lastConnected:
+        type: string
+      privateKey:
+        type: string
+      publicKey:
+        type: string
+      serverId:
+        type: string
+      status:
+        enum:
+        - active
+        - disconnected
+        type: string
+      updatedAt:
+        type: string
+    required:
+    - email
+    - id
+    - ip
+    - privateKey
+    - publicKey
+    type: object
+  response.ErrorDetail:
+    properties:
+      code:
+        type: string
+      fields:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+    type: object
+  response.JSONResponse:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/response.ErrorDetail'
+      message:
+        type: string
+      requestId:
+        type: string
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: API Support
+    url: http://www.example.com/support
+  description: Production-ready WireGuard VPN management microservice with comprehensive
+    API documentation
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: VPN Management API
+  version: 1.0.0
+paths:
+  /admin/servers:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all registered VPN servers with their status
+        and capacity
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of all servers
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.ServerResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Get all VPN servers
+      tags:
+      - Servers
+    post:
+      consumes:
+      - application/json
+      description: Register a new VPN server node with WireGuard agent connection
+        details
+      parameters:
+      - description: Server registration request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateServerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Server created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ServerResponse'
+              type: object
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "409":
+          description: Server ID already exists
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Register a new VPN server
+      tags:
+      - Servers
+  /admin/servers/{serverId}/status:
+    put:
+      consumes:
+      - application/json
+      description: Update a VPN server's operational status and health status
+      parameters:
+      - description: Server ID
+        in: path
+        name: serverId
+        required: true
+        type: string
+      - description: Status update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateServerStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Server status updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ServerResponse'
+              type: object
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "404":
+          description: Server not found
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Update server status
+      tags:
+      - Servers
+  /admin/servers/healthy:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve only servers that are active, healthy, and have available
+        capacity
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of healthy servers
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.ServerResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Get healthy VPN servers
+      tags:
+      - Servers
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all registered VPN users with their WireGuard
+        configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of all users
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.User'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Get all VPN users
+      tags:
+      - Users
+  /users/by-public-key:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific user's information using their WireGuard public
+        key
+      parameters:
+      - description: WireGuard public key (44 characters base64)
+        in: query
+        name: publicKey
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User found and returned with full details
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
+        "400":
+          description: Bad request - missing publicKey query parameter
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "404":
+          description: Not found - no user exists with given public key
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error - database operation failed
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Get user by WireGuard public key
+      tags:
+      - Users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new VPN user with email and IP address. Automatically
+        generates WireGuard public/private key pair and returns ready-to-use configuration
+      parameters:
+      - description: User registration request with email and IP
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully with WireGuard configuration
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.RegisterResponse'
+              type: object
+        "400":
+          description: Invalid input - invalid email format or IP address format
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "409":
+          description: Conflict - email or IP address already registered
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error - database or WireGuard operation failed
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Register a new VPN user
+      tags:
+      - Users
+  /users/toggle:
+    post:
+      consumes:
+      - application/json
+      description: Connect or disconnect a VPN user by public key. Supports idempotent
+        operations - calling with the same state returns success
+      parameters:
+      - description: Toggle request with public key and action (connect/disconnect)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ToggleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Connection toggled successfully with updated user state
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ToggleResponse'
+              type: object
+        "400":
+          description: Invalid input - invalid public key format or invalid action
+            value
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "404":
+          description: Not found - user with given public key does not exist
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error - database or WireGuard operation failed
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Toggle user VPN connection status
+      tags:
+      - Users
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
