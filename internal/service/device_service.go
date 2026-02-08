@@ -17,12 +17,12 @@ import (
 
 // DeviceService handles business logic for devices
 type DeviceService struct {
-	deviceRepo     *repository.DeviceRepository
-	usageRepo      *repository.DeviceUsageRepository
-	userRepo       *repository.UserRepository
-	serverRepo     *repository.ServerRepository
-	wgAgent        *WireGuardAgentClient
-	logger         *zerolog.Logger
+	deviceRepo *repository.DeviceRepository
+	usageRepo  *repository.DeviceUsageRepository
+	userRepo   *repository.UserRepository
+	serverRepo *repository.ServerRepository
+	wgAgent    *WireGuardAgentClient
+	logger     *zerolog.Logger
 }
 
 // NewDeviceService creates a new device service

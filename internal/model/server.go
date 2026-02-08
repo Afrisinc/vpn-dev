@@ -18,18 +18,18 @@ type Server struct {
 	WGPort      int    `db:"wireguard_port" json:"wireguardPort"`
 
 	// WireGuard config
-	ServerPublicKey  string `db:"server_public_key" json:"serverPublicKey" validate:"required"`
-	NetworkCIDR      string `db:"network_cidr" json:"networkCidr" validate:"required"`
-	NextAvailableIP  int    `db:"next_available_ip" json:"nextAvailableIp"`
+	ServerPublicKey string `db:"server_public_key" json:"serverPublicKey" validate:"required"`
+	NetworkCIDR     string `db:"network_cidr" json:"networkCidr" validate:"required"`
+	NextAvailableIP int    `db:"next_available_ip" json:"nextAvailableIp"`
 
 	// Capacity & limits
-	MaxClients        int `db:"max_clients" json:"maxClients"`
-	CurrentClients    int `db:"current_clients" json:"currentClients"`
+	MaxClients        int  `db:"max_clients" json:"maxClients"`
+	CurrentClients    int  `db:"current_clients" json:"currentClients"`
 	BandwidthLimitMbp *int `db:"bandwidth_limit_mbps" json:"bandwidthLimitMbps,omitempty"`
 
 	// Status
-	Status       string `db:"status" json:"status" validate:"oneof=active maintenance offline full"`
-	HealthStatus string `db:"health_status" json:"healthStatus" validate:"oneof=healthy degraded down unknown"`
+	Status          string     `db:"status" json:"status" validate:"oneof=active maintenance offline full"`
+	HealthStatus    string     `db:"health_status" json:"healthStatus" validate:"oneof=healthy degraded down unknown"`
 	LastHealthCheck *time.Time `db:"last_health_check" json:"lastHealthCheck,omitempty"`
 
 	// Geo info

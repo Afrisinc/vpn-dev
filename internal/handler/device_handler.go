@@ -36,14 +36,14 @@ type RegisterDeviceRequest struct {
 
 // DeviceResponse represents device in responses
 type DeviceResponse struct {
-	DeviceID      string `json:"deviceId"`
-	DeviceName    string `json:"deviceName"`
-	DeviceType    string `json:"deviceType"`
-	IP            string `json:"ip"`
-	PublicKey     string `json:"publicKey"`
-	Status        string `json:"status"`
+	DeviceID      string  `json:"deviceId"`
+	DeviceName    string  `json:"deviceName"`
+	DeviceType    string  `json:"deviceType"`
+	IP            string  `json:"ip"`
+	PublicKey     string  `json:"publicKey"`
+	Status        string  `json:"status"`
 	LastConnected *string `json:"lastConnected,omitempty"`
-	CreatedAt     string `json:"createdAt"`
+	CreatedAt     string  `json:"createdAt"`
 }
 
 // RegisterDevice registers a new device for a user

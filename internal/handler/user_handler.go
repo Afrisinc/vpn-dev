@@ -86,14 +86,19 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 			}
 
 			deviceInfos = append(deviceInfos, dto.UserDeviceInfo{
-				DeviceID:      device.ID.String(),
-				DeviceName:    device.DeviceName,
-				DeviceType:    device.DeviceType,
-				IP:            device.IP,
-				Status:        device.Status,
-				IsConnected:   isConnected,
-				LastConnected: func() *string { if lastConnStr != "" { return &lastConnStr } ; return nil }(),
-				CreatedAt:     device.CreatedAt.Format(time.RFC3339),
+				DeviceID:    device.ID.String(),
+				DeviceName:  device.DeviceName,
+				DeviceType:  device.DeviceType,
+				IP:          device.IP,
+				Status:      device.Status,
+				IsConnected: isConnected,
+				LastConnected: func() *string {
+					if lastConnStr != "" {
+						return &lastConnStr
+					}
+					return nil
+				}(),
+				CreatedAt: device.CreatedAt.Format(time.RFC3339),
 			})
 		}
 
@@ -122,7 +127,12 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 			DataUsageLimit: user.DataUsageLimit,
 			CreatedAt:      user.CreatedAt.Format(time.RFC3339),
 			UpdatedAt:      user.UpdatedAt.Format(time.RFC3339),
-			LastConnected:  func() *string { if userLastConnStr != "" { return &userLastConnStr } ; return nil }(),
+			LastConnected: func() *string {
+				if userLastConnStr != "" {
+					return &userLastConnStr
+				}
+				return nil
+			}(),
 			DeviceCount:    len(devices),
 			ConnectedCount: connectedCount,
 			Devices:        deviceInfos,
@@ -330,12 +340,12 @@ PersistentKeepalive = 25`, privKeyStr, req.IP, h.wgConfig.ServerPublicKey, h.wgC
 
 	// Return response
 	resp := dto.RegisterResponse{
-		UserID:              user.ID.String(),
-		Email:               user.Email,
-		IP:                  user.IP,
-		PublicKey:           user.PublicKey,
-		WireGuardConfig:     wgConfig,
-		CreatedAt:           user.CreatedAt.Format(time.RFC3339),
+		UserID:          user.ID.String(),
+		Email:           user.Email,
+		IP:              user.IP,
+		PublicKey:       user.PublicKey,
+		WireGuardConfig: wgConfig,
+		CreatedAt:       user.CreatedAt.Format(time.RFC3339),
 	}
 
 	w.Header().Set("Location", "/users/"+user.ID.String())

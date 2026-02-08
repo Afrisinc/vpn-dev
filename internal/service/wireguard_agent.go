@@ -21,9 +21,9 @@ type WireGuardAgentClient struct {
 
 // AddPeerRequest is the request payload for adding a peer to WireGuard
 type AddPeerRequest struct {
-	PublicKey  string `json:"public_key"`
-	AllowedIP  string `json:"allowed_ip"`
-	Endpoint   string `json:"endpoint"`
+	PublicKey string `json:"public_key"`
+	AllowedIP string `json:"allowed_ip"`
+	Endpoint  string `json:"endpoint"`
 }
 
 // RemovePeerRequest is the request payload for removing a peer from WireGuard
@@ -33,8 +33,8 @@ type RemovePeerRequest struct {
 
 // WireGuardResponse is the response from WireGuard agent
 type WireGuardResponse struct {
-	Success bool   `json:"success"`           // Fallback for standard responses
-	Status  string `json:"status"`            // Agent uses "status" field instead
+	Success bool   `json:"success"` // Fallback for standard responses
+	Status  string `json:"status"`  // Agent uses "status" field instead
 	Message string `json:"message"`
 	Error   string `json:"error,omitempty"`
 }

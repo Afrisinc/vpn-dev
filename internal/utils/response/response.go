@@ -7,11 +7,11 @@ import (
 
 // JSONResponse is the standard response structure
 type JSONResponse struct {
-	Success bool                 `json:"success"`
-	Message string               `json:"message,omitempty"`
-	Data    interface{}          `json:"data,omitempty"`
-	Error   *ErrorDetail         `json:"error,omitempty"`
-	RequestID string              `json:"requestId,omitempty"`
+	Success   bool         `json:"success"`
+	Message   string       `json:"message,omitempty"`
+	Data      interface{}  `json:"data,omitempty"`
+	Error     *ErrorDetail `json:"error,omitempty"`
+	RequestID string       `json:"requestId,omitempty"`
 }
 
 // ErrorDetail contains structured error information

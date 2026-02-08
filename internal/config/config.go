@@ -7,16 +7,16 @@ import (
 	"time"
 
 	"github.com/ElissaDesign/vpn-dev/internal/db"
-	"github.com/joho/godotenv"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 // Config holds all application configuration
 type Config struct {
-	Database     DatabaseConfig
-	Server       ServerConfig
-	Security     SecurityConfig
-	WireGuard    WireGuardConfig
+	Database      DatabaseConfig
+	Server        ServerConfig
+	Security      SecurityConfig
+	WireGuard     WireGuardConfig
 	IsDevelopment bool
 }
 

@@ -7,8 +7,8 @@ import (
 	"github.com/ElissaDesign/vpn-dev/internal/handler"
 	"github.com/ElissaDesign/vpn-dev/internal/middleware"
 	"github.com/go-chi/chi/v5"
-	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"github.com/rs/zerolog"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 
 	_ "github.com/ElissaDesign/vpn-dev/docs"
 )
@@ -39,7 +39,7 @@ func SetupRouter(userHandler *handler.UserHandler, serverHandler *handler.Server
 	// Create rate limiter
 	rateLimiter := middleware.NewRateLimiter(
 		float64(cfg.Security.RateLimitRequests)/60.0, // Convert per-minute to per-second
-		cfg.Security.RateLimitRequests,                // Burst size
+		cfg.Security.RateLimitRequests,               // Burst size
 	)
 
 	// User routes with rate limiting
