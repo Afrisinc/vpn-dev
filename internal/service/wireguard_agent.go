@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -32,9 +33,20 @@ type RemovePeerRequest struct {
 
 // WireGuardResponse is the response from WireGuard agent
 type WireGuardResponse struct {
-	Success bool   `json:"success"`
+	Success bool   `json:"success"`           // Fallback for standard responses
+	Status  string `json:"status"`            // Agent uses "status" field instead
 	Message string `json:"message"`
 	Error   string `json:"error,omitempty"`
+}
+
+// IsSuccess returns true if the operation was successful
+func (w *WireGuardResponse) IsSuccess() bool {
+	// Check if success field is true
+	if w.Success {
+		return true
+	}
+	// Also check if status field is "success"
+	return strings.ToLower(w.Status) == "success"
 }
 
 // NewWireGuardAgentClient creates a new WireGuard agent client
@@ -132,6 +144,10 @@ func (w *WireGuardAgentClient) doRequest(ctx context.Context, agentURL, endpoint
 
 	// Check HTTP status code
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		errMsg := wgResp.Error
+		if errMsg == "" {
+			errMsg = wgResp.Message
+		}
 		w.logger.Error().
 			Int("statusCode", resp.StatusCode).
 			Str("url", url).
@@ -139,18 +155,24 @@ func (w *WireGuardAgentClient) doRequest(ctx context.Context, agentURL, endpoint
 			Str("message", wgResp.Message).
 			Str("error", wgResp.Error).
 			Msg("WireGuard agent returned error status")
-		return fmt.Errorf("agent error (status %d): %s", resp.StatusCode, wgResp.Error)
+		return fmt.Errorf("agent error (status %d): %s", resp.StatusCode, errMsg)
 	}
 
-	// Check response success flag
-	if !wgResp.Success {
+	// Check response success flag (supports both success and status fields)
+	if !wgResp.IsSuccess() {
+		errMsg := wgResp.Error
+		if errMsg == "" {
+			errMsg = wgResp.Message
+		}
 		w.logger.Error().
 			Str("url", url).
 			Str("endpoint", endpoint).
+			Str("status", wgResp.Status).
+			Bool("success", wgResp.Success).
 			Str("message", wgResp.Message).
-			Str("error", wgResp.Error).
+			Str("error", errMsg).
 			Msg("WireGuard agent operation failed")
-		return fmt.Errorf("agent operation failed: %s", wgResp.Error)
+		return fmt.Errorf("agent operation failed: %s", errMsg)
 	}
 
 	w.logger.Info().

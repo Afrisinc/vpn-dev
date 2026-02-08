@@ -21,31 +21,35 @@ import (
 
 // UserHandler handles user-related HTTP requests
 type UserHandler struct {
-	service    *service.UserService
-	serverRepo *repository.ServerRepository
-	wgConfig   *config.WireGuardConfig
-	validator  *validator.Validator
-	logger     *zerolog.Logger
+	service         *service.UserService
+	serverRepo      *repository.ServerRepository
+	deviceRepo      *repository.DeviceRepository
+	deviceUsageRepo *repository.DeviceUsageRepository
+	wgConfig        *config.WireGuardConfig
+	validator       *validator.Validator
+	logger          *zerolog.Logger
 }
 
 // NewUserHandler creates a new user handler
-func NewUserHandler(svc *service.UserService, serverRepo *repository.ServerRepository, cfg *config.WireGuardConfig, val *validator.Validator, logger *zerolog.Logger) *UserHandler {
+func NewUserHandler(svc *service.UserService, serverRepo *repository.ServerRepository, deviceRepo *repository.DeviceRepository, deviceUsageRepo *repository.DeviceUsageRepository, cfg *config.WireGuardConfig, val *validator.Validator, logger *zerolog.Logger) *UserHandler {
 	return &UserHandler{
-		service:    svc,
-		serverRepo: serverRepo,
-		wgConfig:   cfg,
-		validator:  val,
-		logger:     logger,
+		service:         svc,
+		serverRepo:      serverRepo,
+		deviceRepo:      deviceRepo,
+		deviceUsageRepo: deviceUsageRepo,
+		wgConfig:        cfg,
+		validator:       val,
+		logger:          logger,
 	}
 }
 
-// GetUsers retrieves all registered VPN users
+// GetUsers retrieves all registered VPN users with devices and usage
 // @Summary Get all VPN users
-// @Description Retrieve a list of all registered VPN users with their WireGuard configuration
+// @Description Retrieve a list of all registered VPN users with their WireGuard configuration, devices, and usage information
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Success 200 {object} response.JSONResponse{data=[]model.User} "List of all users"
+// @Success 200 {object} response.JSONResponse{data=[]dto.UserExtendedResponse} "List of all users with devices and usage"
 // @Failure 500 {object} response.JSONResponse "Internal server error"
 // @Router /users [get]
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -62,12 +66,84 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Build extended responses with devices and usage
+	extendedUsers := make([]dto.UserExtendedResponse, 0, len(users))
+	for _, user := range users {
+		// Fetch user devices
+		devices, _ := h.deviceRepo.FindByUserID(ctx, user.ID)
+		deviceInfos := make([]dto.UserDeviceInfo, 0, len(devices))
+		connectedCount := 0
+		for _, device := range devices {
+			// A device is "connected" if status is "active"
+			isConnected := device.Status == "active"
+			if isConnected {
+				connectedCount++
+			}
+
+			lastConnStr := ""
+			if device.LastConnected != nil {
+				lastConnStr = device.LastConnected.Format(time.RFC3339)
+			}
+
+			deviceInfos = append(deviceInfos, dto.UserDeviceInfo{
+				DeviceID:      device.ID.String(),
+				DeviceName:    device.DeviceName,
+				DeviceType:    device.DeviceType,
+				IP:            device.IP,
+				Status:        device.Status,
+				IsConnected:   isConnected,
+				LastConnected: func() *string { if lastConnStr != "" { return &lastConnStr } ; return nil }(),
+				CreatedAt:     device.CreatedAt.Format(time.RFC3339),
+			})
+		}
+
+		// Fetch user usage
+		usageSummary, _ := h.deviceUsageRepo.GetUserUsageSummary(ctx, user.ID)
+		limitGB := float64(user.DataUsageLimit) / 1_073_741_824
+		usedGB := float64(usageSummary.TotalBytes) / 1_073_741_824
+		remainingGB := limitGB - usedGB
+		usedPercentage := (usedGB / limitGB) * 100
+		if limitGB == 0 {
+			usedPercentage = 0
+			remainingGB = 0
+		}
+
+		userLastConnStr := ""
+		if user.LastConnected != nil {
+			userLastConnStr = user.LastConnected.Format(time.RFC3339)
+		}
+
+		extendedUsers = append(extendedUsers, dto.UserExtendedResponse{
+			UserID:         user.ID.String(),
+			Email:          user.Email,
+			IP:             user.IP,
+			PublicKey:      user.PublicKey,
+			Status:         user.Status,
+			DataUsageLimit: user.DataUsageLimit,
+			CreatedAt:      user.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:      user.UpdatedAt.Format(time.RFC3339),
+			LastConnected:  func() *string { if userLastConnStr != "" { return &userLastConnStr } ; return nil }(),
+			DeviceCount:    len(devices),
+			ConnectedCount: connectedCount,
+			Devices:        deviceInfos,
+			UsageInfo: dto.UserUsageInfo{
+				TotalBytesSent:     usageSummary.BytesSent,
+				TotalBytesReceived: usageSummary.BytesReceived,
+				TotalBytes:         usageSummary.TotalBytes,
+				TotalGB:            usedGB,
+				LimitGB:            limitGB,
+				UsedPercentage:     usedPercentage,
+				RemainingGB:        remainingGB,
+			},
+		})
+	}
+
 	h.logger.Info().
 		Str("requestId", requestID).
 		Int("count", len(users)).
-		Msg("Successfully fetched users")
+		Msg("Successfully fetched users with devices and usage")
 
-	response.OK(w, "Users fetched successfully", users)
+	response.OK(w, "Users fetched successfully", extendedUsers)
 }
 
 // CreateUser registers a new VPN user - Production Ready Endpoint

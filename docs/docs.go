@@ -477,6 +477,458 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/{userId}/devices": {
+            "get": {
+                "description": "Get all devices registered for a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Devices"
+                ],
+                "summary": "List user devices",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Devices retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.JSONResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/handler.DeviceResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Register a new device for user with device name and type",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Devices"
+                ],
+                "summary": "Register new VPN device",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Device registration request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.RegisterDeviceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Device registered successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.JSONResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.DeviceResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Device limit reached",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{userId}/devices/{deviceId}": {
+            "get": {
+                "description": "Get details for a specific device",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Devices"
+                ],
+                "summary": "Get device details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "deviceId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.JSONResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handler.DeviceResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Device not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove a device from user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Devices"
+                ],
+                "summary": "Delete device",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "deviceId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Device not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{userId}/devices/{deviceId}/config": {
+            "get": {
+                "description": "Generates a WireGuard configuration file that can be downloaded or scanned with QR code",
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Get VPN configuration file for a device",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Device ID",
+                        "name": "deviceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Server ID",
+                        "name": "serverId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "wireguard",
+                        "description": "Protocol (default: wireguard)",
+                        "name": "protocol",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "WireGuard configuration file",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{userId}/devices/{deviceId}/usage": {
+            "get": {
+                "description": "Get bandwidth usage for a specific device",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usage"
+                ],
+                "summary": "Get device usage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "deviceId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device usage retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.JSONResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Device not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{userId}/usage": {
+            "get": {
+                "description": "Get total bandwidth usage across all user devices",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usage"
+                ],
+                "summary": "Get user total usage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User usage retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.JSONResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSONResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -767,9 +1219,63 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.DeviceResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deviceId": {
+                    "type": "string"
+                },
+                "deviceName": {
+                    "type": "string"
+                },
+                "deviceType": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "lastConnected": {
+                    "type": "string"
+                },
+                "publicKey": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.RegisterDeviceRequest": {
+            "type": "object",
+            "required": [
+                "deviceName",
+                "deviceType"
+            ],
+            "properties": {
+                "deviceName": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                },
+                "deviceType": {
+                    "type": "string",
+                    "enum": [
+                        "mobile",
+                        "desktop",
+                        "tablet",
+                        "router",
+                        "unknown"
+                    ]
+                }
+            }
+        },
         "model.User": {
             "type": "object",
             "required": [
+                "dataUsageLimit",
                 "email",
                 "id",
                 "ip",
@@ -779,6 +1285,10 @@ const docTemplate = `{
             "properties": {
                 "createdAt": {
                     "type": "string"
+                },
+                "dataUsageLimit": {
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "email": {
                     "type": "string"

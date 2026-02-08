@@ -39,19 +39,23 @@ func Start() {
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(pool)
 	serverRepo := repository.NewServerRepository(pool)
+	deviceRepo := repository.NewDeviceRepository(pool)
+	deviceUsageRepo := repository.NewDeviceUsageRepository(pool)
 
-	// Initialize service
+	// Initialize services
 	userService := service.NewUserService(userRepo)
+	deviceService := service.NewDeviceService(deviceRepo, deviceUsageRepo, userRepo, serverRepo, appLogger)
 
 	// Initialize validator
 	val := validator.New()
 
 	// Initialize handlers
-	userHandler := userhandler.NewUserHandler(userService, serverRepo, &cfg.WireGuard, val, appLogger)
+	userHandler := userhandler.NewUserHandler(userService, serverRepo, deviceRepo, deviceUsageRepo, &cfg.WireGuard, val, appLogger)
 	serverHandler := userhandler.NewServerHandler(serverRepo, val, appLogger)
+	deviceHandler := userhandler.NewDeviceHandler(deviceService, val, appLogger)
 
 	// Setup router with middleware
-	r := SetupRouter(userHandler, serverHandler, *cfg, appLogger)
+	r := SetupRouter(userHandler, serverHandler, deviceHandler, *cfg, appLogger)
 
 	// Create HTTP server
 	server := &http.Server{

@@ -14,7 +14,7 @@ import (
 )
 
 // SetupRouter configures the HTTP router with all routes and middleware
-func SetupRouter(userHandler *handler.UserHandler, serverHandler *handler.ServerHandler, cfg config.Config, logger *zerolog.Logger) http.Handler {
+func SetupRouter(userHandler *handler.UserHandler, serverHandler *handler.ServerHandler, deviceHandler *handler.DeviceHandler, cfg config.Config, logger *zerolog.Logger) http.Handler {
 	r := chi.NewRouter()
 
 	// Global middleware (applied to all routes)
@@ -58,6 +58,26 @@ func SetupRouter(userHandler *handler.UserHandler, serverHandler *handler.Server
 		r.Get("/healthy", serverHandler.GetHealthyServers)
 		r.Post("/", serverHandler.CreateServer)
 		r.Put("/{serverId}/status", serverHandler.UpdateServerStatus)
+	})
+
+	// Device and usage routes (with rate limiting from /users)
+	r.Route("/users/{userId}/devices", func(r chi.Router) {
+		r.Use(rateLimiter.Middleware)
+
+		r.Post("/", deviceHandler.RegisterDevice)
+		r.Get("/", deviceHandler.GetUserDevices)
+		r.Route("/{deviceId}", func(r chi.Router) {
+			r.Get("/", deviceHandler.GetDeviceByID)
+			r.Delete("/", deviceHandler.DeleteDevice)
+			r.Get("/usage", deviceHandler.GetDeviceUsage)
+			r.Get("/config", deviceHandler.GetDeviceConfig)
+		})
+	})
+
+	// User usage routes (with rate limiting from /users)
+	r.Route("/users/{userId}/usage", func(r chi.Router) {
+		r.Use(rateLimiter.Middleware)
+		r.Get("/", deviceHandler.GetUserUsage)
 	})
 
 	return r

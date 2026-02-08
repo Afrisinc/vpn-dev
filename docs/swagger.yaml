@@ -214,10 +214,50 @@ definitions:
     - healthStatus
     - status
     type: object
+  handler.DeviceResponse:
+    properties:
+      createdAt:
+        type: string
+      deviceId:
+        type: string
+      deviceName:
+        type: string
+      deviceType:
+        type: string
+      ip:
+        type: string
+      lastConnected:
+        type: string
+      publicKey:
+        type: string
+      status:
+        type: string
+    type: object
+  handler.RegisterDeviceRequest:
+    properties:
+      deviceName:
+        maxLength: 100
+        minLength: 1
+        type: string
+      deviceType:
+        enum:
+        - mobile
+        - desktop
+        - tablet
+        - router
+        - unknown
+        type: string
+    required:
+    - deviceName
+    - deviceType
+    type: object
   model.User:
     properties:
       createdAt:
         type: string
+      dataUsageLimit:
+        minimum: 0
+        type: integer
       email:
         type: string
       id:
@@ -240,6 +280,7 @@ definitions:
       updatedAt:
         type: string
     required:
+    - dataUsageLimit
     - email
     - id
     - ip
@@ -447,6 +488,295 @@ paths:
       summary: Get all VPN users
       tags:
       - Users
+  /users/{userId}/devices:
+    get:
+      consumes:
+      - application/json
+      description: Get all devices registered for a user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Devices retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handler.DeviceResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: List user devices
+      tags:
+      - Devices
+    post:
+      consumes:
+      - application/json
+      description: Register a new device for user with device name and type
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Device registration request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RegisterDeviceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Device registered successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.DeviceResponse'
+              type: object
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "409":
+          description: Device limit reached
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Register new VPN device
+      tags:
+      - Devices
+  /users/{userId}/devices/{deviceId}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a device from user account
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Device ID
+        in: path
+        name: deviceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Device deleted successfully
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "400":
+          description: Invalid ID format
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "404":
+          description: Device not found
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Delete device
+      tags:
+      - Devices
+    get:
+      consumes:
+      - application/json
+      description: Get details for a specific device
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Device ID
+        in: path
+        name: deviceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Device retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/handler.DeviceResponse'
+              type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "404":
+          description: Device not found
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Get device details
+      tags:
+      - Devices
+  /users/{userId}/devices/{deviceId}/config:
+    get:
+      description: Generates a WireGuard configuration file that can be downloaded
+        or scanned with QR code
+      parameters:
+      - description: User ID
+        format: uuid
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Device ID
+        format: uuid
+        in: path
+        name: deviceId
+        required: true
+        type: string
+      - description: Server ID
+        in: query
+        name: serverId
+        required: true
+        type: string
+      - default: wireguard
+        description: 'Protocol (default: wireguard)'
+        in: query
+        name: protocol
+        type: string
+      responses:
+        "200":
+          description: WireGuard configuration file
+          schema:
+            type: file
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Get VPN configuration file for a device
+      tags:
+      - devices
+  /users/{userId}/devices/{deviceId}/usage:
+    get:
+      consumes:
+      - application/json
+      description: Get bandwidth usage for a specific device
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Device ID
+        in: path
+        name: deviceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Device usage retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "404":
+          description: Device not found
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Get device usage
+      tags:
+      - Usage
+  /users/{userId}/usage:
+    get:
+      consumes:
+      - application/json
+      description: Get total bandwidth usage across all user devices
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User usage retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResponse'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.JSONResponse'
+      summary: Get user total usage
+      tags:
+      - Usage
   /users/by-public-key:
     get:
       consumes:
