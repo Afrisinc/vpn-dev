@@ -1,0 +1,151 @@
+name: Scheduled Jobs
+
+on:
+  schedule:
+    # Run dependency checks daily at 2 AM UTC
+    - cron: '0 2 * * *'
+    # Run code quality checks weekly on Monday at 3 AM UTC
+    - cron: '0 3 * * 1'
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    name: Check for dependency updates
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.24.3
+
+      - name: Check for outdated dependencies
+        run: |
+          echo "Checking for outdated Go dependencies..."
+          go list -u -m all
+          echo ""
+          echo "⚠️  If there are outdated dependencies above, consider running: go get -u ./..."
+
+      - name: Run go mod tidy
+        run: |
+          go mod tidy
+          if git diff --exit-code go.mod go.sum; then
+            echo "✅ Dependencies are in sync"
+          else
+            echo "⚠️  go.mod/go.sum need updates"
+            echo "Changed files:"
+            git diff go.mod go.sum
+          fi
+
+  security-audit:
+    runs-on: ubuntu-latest
+    name: Security audit
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.24.3
+
+      - name: Run Go security audit
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          gosec -fmt=json -out=gosec-report.json ./... || true
+          gosec ./...
+
+      - name: Upload security audit results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gosec-report
+          path: gosec-report.json
+
+  codeql-analysis:
+    runs-on: ubuntu-latest
+    name: CodeQL analysis
+
+    permissions:
+      security-events: write
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['go']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  license-check:
+    runs-on: ubuntu-latest
+    name: License compliance check
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.24.3
+
+      - name: Check licenses
+        run: |
+          go install github.com/google/licenseclassifier/v2/cmd/licenseclassifier@latest || true
+          echo "License check would run here"
+          echo "Consider using: go-licenses report ./..."
+
+  performance-baseline:
+    runs-on: ubuntu-latest
+    name: Performance baseline
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.24.3
+
+      - name: Run benchmarks
+        run: |
+          echo "Running performance benchmarks..."
+          go test -bench=. -benchmem ./... 2>&1 | tee benchmark-results.txt || true
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results
+          path: benchmark-results.txt
+          retention-days: 30
+
+  health-check:
+    runs-on: ubuntu-latest
+    name: API health check (if deployed)
+
+    steps:
+      - name: Check API health
+        run: |
+          echo "This job would check deployed API health"
+          echo "Example: curl -f https://api.example.com/health || exit 1"
+          # Uncomment and configure for your deployment:
+          # curl -f ${{ secrets.API_URL }}/health || exit 1
