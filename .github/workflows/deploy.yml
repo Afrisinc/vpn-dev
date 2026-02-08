@@ -1,0 +1,116 @@
+name: Deploy Vpn-dev
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - master
+  pull_request:
+    branches:
+      - main
+      - develop
+      - master
+
+jobs:
+  build:
+    name: Build & Push vpn-dev Image
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 🔐 SINGLE, CORRECT GHCR LOGIN (same model as working workflow)
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_OWNER }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ secrets.GHCR_OWNER }}/vpn-dev
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=sha
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy vpn-dev to VPS
+    needs: build
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'push' &&
+        (github.ref == 'refs/heads/main' ||
+         github.ref == 'refs/heads/develop' ||
+         github.ref == 'refs/heads/master')
+
+    env:
+      DEPLOY_GHCR_USERNAME: ${{ secrets.DEPLOY_GHCR_USERNAME }}
+      DEPLOY_GHCR_TOKEN: ${{ secrets.DEPLOY_GHCR_TOKEN }}
+      BRANCH_NAME: ${{ github.ref_name }}
+      DOCKER_IMAGE: ghcr.io/${{ secrets.GHCR_OWNER }}/vpn-dev:latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT != '' && secrets.VPS_PORT || 22 }}
+          timeout: 30s
+          command_timeout: 10m
+
+          # 🔐 PASS DEPLOY CREDS
+          envs: DEPLOY_GHCR_USERNAME,DEPLOY_GHCR_TOKEN,DOCKER_IMAGE,BRANCH_NAME
+
+          script: |
+            set -e
+
+            APP_PATH="${{ secrets.VPS_APP_PATH }}"
+            APP_PATH=${APP_PATH:=/opt/apps/afrisinc/vpn-dev}
+
+            echo "🚀 Deploying vpn-dev to $APP_PATH"
+            mkdir -p "$APP_PATH"
+            cd "$APP_PATH"
+
+            # 🔐 GHCR LOGIN (pull only)
+            echo "$DEPLOY_GHCR_TOKEN" | docker login ghcr.io -u "$DEPLOY_GHCR_USERNAME" --password-stdin
+
+            docker compose pull
+            docker compose down || true
+            docker compose up -d --remove-orphans
+            docker image prune -af
+
+            docker compose ps
+            docker compose logs --tail=20 wg-agent || true

@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: vpn-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-vpn_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-vpn_password}
+      POSTGRES_DB: ${DB_NAME:-vpn_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - vpn-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-vpn_user} -d ${DB_NAME:-vpn_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # VPN Management API
+  vpn-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vpn-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-vpn_user}
+      DB_PASSWORD: ${DB_PASSWORD:-vpn_password}
+      DB_NAME: ${DB_NAME:-vpn_db}
+
+      # Application Configuration
+      APP_PORT: 8080
+      APP_ENV: ${APP_ENV:-development}
+
+      # WireGuard Agent Configuration
+      WG_AGENT_URL: ${WG_AGENT_URL:-http://wireguard-agent:9000}
+      WG_AGENT_API_KEY: ${WG_AGENT_API_KEY:-default-api-key}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "8080:8080"
+    networks:
+      - vpn-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - ./logs:/app/logs
+
+  # Optional: WireGuard Agent (if running locally)
+  # Uncomment below to run WireGuard agent in Docker
+  # wireguard-agent:
+  #   image: wireguard-agent:latest
+  #   container_name: wireguard-agent
+  #   environment:
+  #     API_PORT: 9000
+  #     API_KEY: default-api-key
+  #   ports:
+  #     - "9000:9000"
+  #   networks:
+  #     - vpn-network
+  #   # Add more config as needed
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  vpn-network:
+    driver: bridge
