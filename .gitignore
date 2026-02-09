@@ -1,33 +1,89 @@
+# Environment Variables
 .env
-.env/
-.gitmodules
-# Ignore environment variable files
+.env.local
+.env.*.local
 
-# Ignore node_modules directory
-node_modules/
-# cmd/
-# Ignore build output directories
+# Build Output
+*.exe
+*.exe~
+*.dll
+*.so
+*.so.*
+*.dylib
+*.test
+*.out
+.build/
 dist/
-build/
-# Ignore log files
-logs/
-# Ignore temporary files
-tmp/
-# Ignore coverage reports
-coverage/
-# Ignore IDE specific files
+bin/
+vpn-dev
+myapp
+
+# Go
+vendor/
+go.sum.bak
+*.go.bak
+
+# IDE & Editor
 .vscode/
 .idea/
-# Ignore OS generated files
+*.swp
+*.swo
+*~
 .DS_Store
-# Ignore specific file typesgit push --set-upstream origin develop
-*.log
-*.tmp
-*.env
+*.sublime-project
+*.sublime-workspace
+.vim/
 
-# Ignore specific directories for specific tools
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage.out
+coverage.html
+coverage/
+*.cover
+.coverage
+
+# Dependencies
+node_modules/
+vendor/
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# OS Specific
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Git
+.gitmodules
+
+# Node modules (if any)
+node_modules/
+package-lock.json
+
+# Specific Tools
 .sass-cache/
-# Ignore specific files for specific tools
-.sass-cache
-# Ignore specific directories for specific tools
 coverage-final.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets (if accidentally created)
+secrets.yml
+secrets.yaml
