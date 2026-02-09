@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"sync"
 	"time"
 
@@ -29,10 +30,14 @@ type PostgresConfig struct {
 func NewPostgresConnection(cfg PostgresConfig) (*pgxpool.Pool, error) {
 	var err error
 	once.Do(func() {
+		// URL-encode username and password to handle special characters
+		encodedUser := url.QueryEscape(cfg.User)
+		encodedPassword := url.QueryEscape(cfg.Password)
+
 		dsn := fmt.Sprintf(
 			"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-			cfg.User,
-			cfg.Password,
+			encodedUser,
+			encodedPassword,
 			cfg.Host,
 			cfg.Port,
 			cfg.Database,
