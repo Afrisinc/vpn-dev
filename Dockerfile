@@ -51,7 +51,7 @@ RUN mkdir -p /app/logs && chown vpn:vpn /app/logs
 USER vpn
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8096
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
